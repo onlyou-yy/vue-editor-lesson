@@ -4,6 +4,7 @@ export function useBlockGragger(focusData) {
     startY: 0,
   };
   const mousemove = (e) => {
+    console.log("move");
     let { clientX: moveX, clientY: moveY } = e;
     let { startX, startY } = dragState;
     let durX = moveX - startX;

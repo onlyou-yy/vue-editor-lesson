@@ -10,16 +10,18 @@ export function useBlockFocus(data, callback) {
     e.preventDefault();
     e.stopPropagation();
     if (e.shiftKey) {
-      // 当按住shift的时候不用清空
-      block.focus = !block.focus;
+      // 按住shiftKey键
+      if (focusData.value.focus.length <= 1) {
+        block.focus = true; // 当只有一个节点被选中时，按住shift键也不会切换focus状态
+      } else {
+        block.focus = !block.focus;
+      }
     } else {
       if (!block.focus) {
         // 添加 focus 属性，是否被选择
         clearBlockFocus();
         block.focus = true;
-      } else {
-        block.focus = false;
-      }
+      } // 当自己被选中，再次点击时还是选中状态
     }
 
     callback && callback(e);
