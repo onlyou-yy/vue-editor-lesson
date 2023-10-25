@@ -43,5 +43,11 @@ export function useBlockFocus(data, callback) {
     );
     return { focus, unfocus };
   });
-  return { blockMousedown, containerMousedown, focusData, lastSelectBlock };
+  return {
+    blockMousedown,
+    containerMousedown,
+    clearBlockFocus,
+    focusData,
+    lastSelectBlock,
+  };
 }

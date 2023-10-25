@@ -5,6 +5,20 @@ import deepcopy from "deepcopy";
 import { useMenuDragger } from "./useMenuDragger";
 import { useBlockFocus } from "./useBlockFocus";
 import { useBlockGragger } from "./useBlockDragger";
+import { ElButton } from "element-plus";
+import {
+  DArrowLeft,
+  DArrowRight,
+  Download,
+  Upload,
+  SortDown,
+  SortUp,
+  Delete,
+  View,
+  Hide,
+  CloseBold,
+} from "@element-plus/icons-vue";
+import { useCommand } from "./useCommand";
 export default defineComponent({
   props: {
     modelValue: {
@@ -36,17 +50,76 @@ export default defineComponent({
     const { dragstart, dragend } = useMenuDragger(containerRef, data);
     // 拖动
     // 点击选中
-    const { blockMousedown, containerMousedown, focusData, lastSelectBlock } =
-      useBlockFocus(data, (e) => {
-        // 选中后可以直接进行拖拽
-        console.log(focusData.value.focus);
-        mousedown(e);
-      });
+    const {
+      blockMousedown,
+      containerMousedown,
+      clearBlockFocus,
+      focusData,
+      lastSelectBlock,
+    } = useBlockFocus(data, (e) => {
+      // 选中后可以直接进行拖拽
+      console.log(focusData.value.focus);
+      mousedown(e);
+    });
     const { mousedown, markLine } = useBlockGragger(
       focusData,
       lastSelectBlock,
       data
     );
+
+    const { commands } = useCommand(data);
+    const buttons = [
+      { label: "撤销", icon: <DArrowLeft />, handler: () => commands.undo() },
+      { label: "还原", icon: <DArrowRight />, handler: () => commands.redo() },
+      {
+        label: "导出",
+        icon: <Upload />,
+        handler: () => {
+          $dialog({
+            title: "导出json使用",
+            content: JSON.stringify(data.value),
+            footer: true,
+          });
+        },
+      },
+      {
+        label: "导入",
+        icon: <Download />,
+        handler: () => {
+          $dialog({
+            title: "导入json使用",
+            content: "",
+            footer: true,
+            onConfirm(text) {
+              // data.value = JSON.parse(text)
+              commands.updateContainer(JSON.parse(text));
+            },
+          });
+        },
+      },
+      { label: "置顶", icon: <SortUp />, handler: () => commands.placeTop() },
+      {
+        label: "置底",
+        icon: <SortDown />,
+        handler: () => commands.placeBottom(),
+      },
+      { label: "删除", icon: <Delete />, handler: () => commands.delete() },
+      {
+        label: () => (true ? "编辑" : "预览"),
+        icon: () => (true ? <Hide /> : <View />),
+        handler: () => {
+          clearBlockFocus();
+        },
+      },
+      {
+        label: "关闭",
+        icon: <CloseBold />,
+        handler: () => {
+          editorRef.value = false;
+          clearBlockFocus();
+        },
+      },
+    ];
 
     return () => (
       <div className="editor">
@@ -65,7 +138,21 @@ export default defineComponent({
             );
           })}
         </div>
-        <div className="editor-top">top</div>
+        <div className="editor-top">
+          {buttons.map((btn, index) => {
+            return (
+              <ElButton
+                type="primary"
+                size="small"
+                icon={btn.icon}
+                key={index}
+                onClick={btn.handler}
+              >
+                {btn.label}
+              </ElButton>
+            );
+          })}
+        </div>
         <div className="editor-right">right</div>
         <div
           className="editor-container"
@@ -77,6 +164,7 @@ export default defineComponent({
           <div className="editor-container-canvas">
             {/* 产生内容区域 */}
             <div
+              lastSelectBlock
               className="editor-container-canvas__content"
               style={containerStyle.value}
               ref={containerRef}

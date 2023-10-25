@@ -1,9 +1,11 @@
 import { reactive } from "vue";
+import { events } from "./events";
 
 export function useBlockGragger(focusData, lastSelectBlock, data) {
   let dragState = {
     startX: 0,
     startY: 0,
+    dragging: false, //默认不是在拖拽
   };
   let markLine = reactive({
     x: null,
@@ -11,7 +13,10 @@ export function useBlockGragger(focusData, lastSelectBlock, data) {
   });
   const mousemove = (e) => {
     let { clientX: moveX, clientY: moveY } = e;
-
+    if (!dragState.dragging) {
+      dragState.dragging = true;
+      events.emit("start"); //触发事件记住拖拽前的位置
+    }
     // 计算当前元素最新的left和top去线里面找，找到显示线
     // 鼠标移动后 - 鼠标移动前 + left
     let left = moveX - dragState.startX + dragState.startLeft;
@@ -57,6 +62,11 @@ export function useBlockGragger(focusData, lastSelectBlock, data) {
     document.removeEventListener("mouseup", mouseup);
     markLine.x = null;
     markLine.y = null;
+
+    if (dragState.dragging) {
+      dragState.dragging = false;
+      events.emit("end");
+    }
   };
   const mousedown = (e) => {
     const { width: BWidth, height: BHeight } = lastSelectBlock.value;
@@ -67,6 +77,7 @@ export function useBlockGragger(focusData, lastSelectBlock, data) {
       startLeft: lastSelectBlock.value.left, // B 拖拽开始前的位置
       startTop: lastSelectBlock.value.top,
       startPos: focusData.value.focus.map(({ top, left }) => ({ top, left })),
+      dragging: false,
       lines: (() => {
         // 记录当前选择的元素与其他元素的位置关系的辅助线关系
         // 辅助线是在未选中的元素中创建的

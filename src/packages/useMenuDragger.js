@@ -1,3 +1,5 @@
+import { events } from "./events";
+
 export function useMenuDragger(containerRef, data) {
   let currentComponent = null;
   const dragenter = (e) => {
@@ -37,6 +39,7 @@ export function useMenuDragger(containerRef, data) {
     containerRef.value.addEventListener("dragleave", dragleave);
     // 松手的时候，根据拖拽的组件添加一个组件
     containerRef.value.addEventListener("drop", drop);
+    events.emit("start");
   };
 
   const dragend = (e, component) => {
@@ -44,6 +47,7 @@ export function useMenuDragger(containerRef, data) {
     containerRef.value.removeEventListener("dragover", dragover);
     containerRef.value.removeEventListener("dragleave", dragleave);
     containerRef.value.removeEventListener("drop", drop);
+    events.emit("end");
   };
 
   return { dragstart, dragend, currentComponent };
