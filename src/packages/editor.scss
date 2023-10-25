@@ -90,3 +90,18 @@
     border: 1px dashed red;
   }
 }
+
+.line-x,
+.line-y {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.line-x {
+  height: 100%;
+  border-left: 1px dashed red;
+}
+.line-y {
+  width: 100%;
+  border-top: 1px dashed red;
+}

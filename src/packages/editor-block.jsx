@@ -23,6 +23,8 @@ export default defineComponent({
         props.block.left = props.block.left - offsetWidth / 2;
         props.block.alignCenter = false; // 居中后就不需要居中了
       }
+      props.block.width = offsetWidth;
+      props.block.height = offsetHeight;
     });
 
     return () => {

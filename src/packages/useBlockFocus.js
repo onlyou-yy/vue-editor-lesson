@@ -1,12 +1,17 @@
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 export function useBlockFocus(data, callback) {
+  const selectIndex = ref(-1); //还没有选中
+
+  // 最后选择的组件
+  const lastSelectBlock = computed(() => data.value.blocks[selectIndex.value]);
+
   const clearBlockFocus = () => {
     data.value.blocks.forEach((block) => {
       block.focus = false;
     });
   };
-  const blockMousedown = (e, block) => {
+  const blockMousedown = (e, block, index) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.shiftKey) {
@@ -23,11 +28,12 @@ export function useBlockFocus(data, callback) {
         block.focus = true;
       } // 当自己被选中，再次点击时还是选中状态
     }
-
+    selectIndex.value = index;
     callback && callback(e);
   };
   const containerMousedown = (e) => {
     clearBlockFocus();
+    selectIndex.value = -1;
   };
   const focusData = computed(() => {
     let focus = [];
@@ -37,5 +43,5 @@ export function useBlockFocus(data, callback) {
     );
     return { focus, unfocus };
   });
-  return { blockMousedown, containerMousedown, focusData };
+  return { blockMousedown, containerMousedown, focusData, lastSelectBlock };
 }
