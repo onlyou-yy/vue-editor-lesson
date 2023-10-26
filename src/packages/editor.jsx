@@ -19,6 +19,7 @@ import {
   CloseBold,
 } from "@element-plus/icons-vue";
 import { useCommand } from "./useCommand";
+import { $dialog } from "@/components/Dialog";
 export default defineComponent({
   props: {
     modelValue: {
@@ -78,7 +79,7 @@ export default defineComponent({
           $dialog({
             title: "导出json使用",
             content: JSON.stringify(data.value),
-            footer: true,
+            footer: false,
           });
         },
       },
@@ -91,7 +92,6 @@ export default defineComponent({
             content: "",
             footer: true,
             onConfirm(text) {
-              // data.value = JSON.parse(text)
               commands.updateContainer(JSON.parse(text));
             },
           });

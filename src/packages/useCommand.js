@@ -13,8 +13,8 @@ export function useCommand(data) {
 
   const register = (command) => {
     state.commandArray.push(command);
-    state.commands[command.name] = () => {
-      const { redo, undo } = command.execute();
+    state.commands[command.name] = (...argv) => {
+      const { redo, undo } = command.execute(...argv);
       redo();
       if (!command.pushQueue) return;
       let { queue, current } = state;
@@ -22,6 +22,7 @@ export function useCommand(data) {
       // 可能在放置过程中有撤销操作，所以根据当前最新的current值来计算新的队列
       // 组件1 -- 组件2 -- 撤销组件2 -- 组件3
       // 组件1 -- 组件3
+      // 只有记录新的状态到队列的时候才将后续的状态进行删除
       if (queue.length > 0) {
         queue = queue.slice(0, current + 1);
         state.queue = queue;
@@ -128,6 +129,25 @@ export function useCommand(data) {
     };
     return init;
   })();
+
+  register({
+    name: "updateContainer",
+    pushQueue: true,
+    execute(newValue) {
+      let state = {
+        before: data.value,
+        after: newValue,
+      };
+      return {
+        redo() {
+          data.value = state.after;
+        },
+        undo() {
+          data.value = state.before;
+        },
+      };
+    },
+  });
 
   ~(() => {
     state.destoryArray.push(keyboardEvent());
