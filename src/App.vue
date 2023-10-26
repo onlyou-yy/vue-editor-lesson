@@ -9,6 +9,7 @@ import Editor from "./packages/editor";
 import { registerConfig as config } from "./utils/editor-config";
 const state = ref(data);
 provide("config", config);
+console.log("state", state.value.blocks);
 </script>
 
 <script>

@@ -2,7 +2,7 @@ import deepcopy from "deepcopy";
 import { events } from "./events";
 import { onUnmounted } from "vue";
 
-export function useCommand(data) {
+export function useCommand(data, focusData) {
   const state = {
     current: -1, //前进后退索引值
     queue: [], //存放所有操作的命令
@@ -96,6 +96,88 @@ export function useCommand(data) {
         undo() {
           // 后退
           data.value = { ...data.value, blocks: before };
+        },
+      };
+    },
+  });
+
+  register({
+    name: "placeTop",
+    pushQueue: true,
+    execute() {
+      // 如果blocks前后地址相同就不会触发更新
+      let before = deepcopy(data.value.blocks);
+      let after = (() => {
+        // 置顶就是在所有的block中找到最大zIndex的block
+        const { unfocus, focus } = focusData.value;
+        let maxZIndex = unfocus.reduce((pre, block) => {
+          return Math.max(pre, block.zIndex);
+        }, -Infinity);
+        focus.forEach((block) => {
+          block.zIndex = maxZIndex + 1;
+        });
+        return data.value.blocks;
+      })();
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: after };
+        },
+        undo() {
+          data.value = { ...data.value, blocks: before };
+        },
+      };
+    },
+  });
+
+  register({
+    name: "placeBottom",
+    pushQueue: true,
+    execute() {
+      let before = deepcopy(data.value.blocks);
+      let after = (() => {
+        // 置底就是在所有的block中找到最小zIndex的block
+        const { unfocus, focus } = focusData.value;
+        let minZIndex =
+          unfocus.reduce((pre, block) => {
+            return Math.min(pre, block.zIndex);
+          }, Infinity) - 1;
+        // 不能直接减1 因为index不能出现负值 负值久看不到组件
+        if (minZIndex < 0) {
+          // 如果是负值，让没选中的向上， 自己变成0
+          const dur = Math.abs(minZIndex);
+          minZIndex = 0;
+          unfocus.forEach((block = block.zIndex = dur));
+        }
+        focus.forEach((block) => {
+          block.zIndex = minZIndex;
+        });
+        return data.value.blocks;
+      })();
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: after };
+        },
+        undo() {
+          data.value = { ...data.value, blocks: before };
+        },
+      };
+    },
+  });
+
+  register({
+    name: "delete",
+    pushQueue: true,
+    execute() {
+      let state = {
+        before: deepcopy(data.value.blocks),
+        after: focusData.value.unfocus,
+      };
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: state.after };
+        },
+        undo() {
+          data.value = { ...data.value, blocks: state.before };
         },
       };
     },

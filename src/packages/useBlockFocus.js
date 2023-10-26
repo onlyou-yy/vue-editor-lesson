@@ -1,6 +1,6 @@
 import { computed, ref } from "vue";
 
-export function useBlockFocus(data, callback) {
+export function useBlockFocus(data, previewRef, callback) {
   const selectIndex = ref(-1); //还没有选中
 
   // 最后选择的组件
@@ -12,6 +12,7 @@ export function useBlockFocus(data, callback) {
     });
   };
   const blockMousedown = (e, block, index) => {
+    if (previewRef.value) return;
     e.preventDefault();
     e.stopPropagation();
     if (e.shiftKey) {
@@ -32,6 +33,7 @@ export function useBlockFocus(data, callback) {
     callback && callback(e);
   };
   const containerMousedown = (e) => {
+    if (previewRef.value) return;
     clearBlockFocus();
     selectIndex.value = -1;
   };

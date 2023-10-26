@@ -29,6 +29,9 @@ export default defineComponent({
   },
   emits: ["update:modelValue"],
   setup(props, ctx) {
+    // 预览的时候内容不能再操作，可以点击输入内容方便看效果
+    const previewRef = ref(false);
+
     const data = computed({
       get() {
         return props.modelValue;
@@ -57,7 +60,7 @@ export default defineComponent({
       clearBlockFocus,
       focusData,
       lastSelectBlock,
-    } = useBlockFocus(data, (e) => {
+    } = useBlockFocus(data, previewRef, (e) => {
       // 选中后可以直接进行拖拽
       console.log(focusData.value.focus);
       mousedown(e);
@@ -68,7 +71,7 @@ export default defineComponent({
       data
     );
 
-    const { commands } = useCommand(data);
+    const { commands } = useCommand(data, focusData);
     const buttons = [
       { label: "撤销", icon: <DArrowLeft />, handler: () => commands.undo() },
       { label: "还原", icon: <DArrowRight />, handler: () => commands.redo() },
@@ -105,9 +108,10 @@ export default defineComponent({
       },
       { label: "删除", icon: <Delete />, handler: () => commands.delete() },
       {
-        label: () => (true ? "编辑" : "预览"),
-        icon: () => (true ? <Hide /> : <View />),
+        label: () => (previewRef.value ? "编辑" : "预览"),
+        icon: () => (previewRef.value ? <Hide /> : <View />),
         handler: () => {
+          previewRef.value = !previewRef.value;
           clearBlockFocus();
         },
       },
@@ -140,15 +144,18 @@ export default defineComponent({
         </div>
         <div className="editor-top">
           {buttons.map((btn, index) => {
+            const icon = typeof btn.icon === "function" ? btn.icon() : btn.icon;
+            const label =
+              typeof btn.label === "function" ? btn.label() : btn.label;
             return (
               <ElButton
                 type="primary"
                 size="small"
-                icon={btn.icon}
+                icon={icon}
                 key={index}
                 onClick={btn.handler}
               >
-                {btn.label}
+                {label}
               </ElButton>
             );
           })}
@@ -172,7 +179,10 @@ export default defineComponent({
               {data.value.blocks.map((block, i) => {
                 return (
                   <EditorBlock
-                    class={block.focus ? "editor-block-focus" : ""}
+                    class={[
+                      block.focus ? "editor-block-focus" : "",
+                      previewRef.value ? "editor-block-preview" : "",
+                    ]}
                     block={block}
                     onMousedown={(e) => {
                       blockMousedown(e, block, i);
