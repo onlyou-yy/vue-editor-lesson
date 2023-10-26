@@ -20,6 +20,7 @@ import {
 } from "@element-plus/icons-vue";
 import { useCommand } from "./useCommand";
 import { $dialog } from "@/components/Dialog";
+import { $dropdown, DropdownItem } from "@/components/Dropdown";
 export default defineComponent({
   props: {
     modelValue: {
@@ -31,6 +32,8 @@ export default defineComponent({
   setup(props, ctx) {
     // 预览的时候内容不能再操作，可以点击输入内容方便看效果
     const previewRef = ref(false);
+    // 是否处在页面编辑状态，否就是预览页面
+    const editorRef = ref(true);
 
     const data = computed({
       get() {
@@ -125,89 +128,170 @@ export default defineComponent({
       },
     ];
 
-    return () => (
-      <div className="editor">
-        <div className="editor-left">
-          {componentList.map((component) => {
-            return (
-              <div
-                className="editor-left-item"
-                draggable
-                onDragstart={(e) => dragstart(e, component)}
-                onDragend={(e) => dragend(e, component)}
-              >
-                <span>{component.name}</span>
-                <div>{component.preview()}</div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="editor-top">
-          {buttons.map((btn, index) => {
-            const icon = typeof btn.icon === "function" ? btn.icon() : btn.icon;
-            const label =
-              typeof btn.label === "function" ? btn.label() : btn.label;
-            return (
-              <ElButton
-                type="primary"
-                size="small"
-                icon={icon}
-                key={index}
-                onClick={btn.handler}
-              >
-                {label}
-              </ElButton>
-            );
-          })}
-        </div>
-        <div className="editor-right">right</div>
-        <div
-          className="editor-container"
-          onMousedown={() => {
-            containerMousedown();
-          }}
-        >
-          {/* 负责产生滚动条 */}
-          <div className="editor-container-canvas">
-            {/* 产生内容区域 */}
-            <div
-              lastSelectBlock
-              className="editor-container-canvas__content"
-              style={containerStyle.value}
-              ref={containerRef}
-            >
-              {data.value.blocks.map((block, i) => {
-                return (
-                  <EditorBlock
-                    class={[
-                      block.focus ? "editor-block-focus" : "",
-                      previewRef.value ? "editor-block-preview" : "",
-                    ]}
-                    block={block}
-                    onMousedown={(e) => {
-                      blockMousedown(e, block, i);
-                    }}
-                  ></EditorBlock>
-                );
-              })}
+    const onContextMenuBlock = (e, block) => {
+      e.preventDefault();
+      $dropdown({
+        el: e.target, // 以哪个元素为准产生一个dropdown
+        content: () => {
+          return (
+            <>
+              <DropdownItem
+                label="删除"
+                icon={<Delete style="width: 1rem" />}
+                onClick={() => commands.delete()}
+              />
+              <DropdownItem
+                label="置顶"
+                icon={<SortUp style="width: 1rem" />}
+                onClick={() => commands.placeTop()}
+              />
+              <DropdownItem
+                label="置底"
+                icon={<SortDown style="width: 1rem" />}
+                onClick={() => commands.placeBottom()}
+              />
+              <DropdownItem
+                label="查看"
+                icon={<View style="width: 1rem" />}
+                onClick={() => {
+                  $dialog({
+                    title: "查看节点数据",
+                    content: JSON.stringify(block, null, 2),
+                  });
+                }}
+              />
+              <DropdownItem
+                label="导入"
+                icon={<Download style="width: 1rem" />}
+                onClick={() => {
+                  $dialog({
+                    title: "导入节点数据",
+                    content: "",
+                    footer: true,
+                    onConfirm(text) {
+                      commands.updateBlock(JSON.parse(text), block);
+                    },
+                  });
+                }}
+              />
+            </>
+          );
+        },
+      });
+    };
 
-              {/* 辅助线 */}
-              {markLine.x !== null && (
+    return () =>
+      !editorRef.value ? (
+        <>
+          <div
+            className="editor-container-canvas__content"
+            style={[containerStyle.value, { margin: 0 }]}
+          >
+            {data.value.blocks.map((block, i) => {
+              return (
+                <EditorBlock
+                  class={"editor-block-preview"}
+                  block={block}
+                ></EditorBlock>
+              );
+            })}
+          </div>
+          <div>
+            <ElButton
+              onClick={() => {
+                editorRef.value = true;
+              }}
+            >
+              继续编辑
+            </ElButton>
+          </div>
+        </>
+      ) : (
+        <div className="editor">
+          <div className="editor-left">
+            {componentList.map((component) => {
+              return (
                 <div
-                  className="line-x"
-                  style={{ left: `${markLine.x}px` }}
-                ></div>
-              )}
-              {markLine.y !== null && (
-                <div
-                  className="line-y"
-                  style={{ top: `${markLine.y}px` }}
-                ></div>
-              )}
+                  className="editor-left-item"
+                  draggable
+                  onDragstart={(e) => dragstart(e, component)}
+                  onDragend={(e) => dragend(e, component)}
+                >
+                  <span>{component.name}</span>
+                  <div>{component.preview()}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="editor-top">
+            {buttons.map((btn, index) => {
+              const icon =
+                typeof btn.icon === "function" ? btn.icon() : btn.icon;
+              const label =
+                typeof btn.label === "function" ? btn.label() : btn.label;
+              return (
+                <ElButton
+                  type="primary"
+                  size="small"
+                  icon={icon}
+                  key={index}
+                  onClick={btn.handler}
+                >
+                  {label}
+                </ElButton>
+              );
+            })}
+          </div>
+          <div className="editor-right">right</div>
+          <div
+            className="editor-container"
+            onMousedown={() => {
+              containerMousedown();
+            }}
+          >
+            {/* 负责产生滚动条 */}
+            <div className="editor-container-canvas">
+              {/* 产生内容区域 */}
+              <div
+                className="editor-container-canvas__content"
+                style={containerStyle.value}
+                ref={containerRef}
+              >
+                {data.value.blocks.map((block, i) => {
+                  return (
+                    <EditorBlock
+                      class={[
+                        block.focus ? "editor-block-focus" : "",
+                        previewRef.value ? "editor-block-preview" : "",
+                      ]}
+                      block={block}
+                      onMousedown={(e) => {
+                        blockMousedown(e, block, i);
+                      }}
+                      onContextmenu={(e) => {
+                        onContextMenuBlock(e, block);
+                      }}
+                    ></EditorBlock>
+                  );
+                })}
+
+                {/* 辅助线 */}
+                {markLine.x !== null && (
+                  <div
+                    className="line-x"
+                    style={{ left: `${markLine.x}px` }}
+                  ></div>
+                )}
+                {markLine.y !== null && (
+                  <div
+                    className="line-y"
+                    style={{ top: `${markLine.y}px` }}
+                  ></div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    );
+      );
   },
 });

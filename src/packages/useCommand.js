@@ -231,6 +231,33 @@ export function useCommand(data, focusData) {
     },
   });
 
+  register({
+    name: "updateBlock",
+    pushQueue: true,
+    execute(newBlock, oldBlock) {
+      const state = {
+        before: data.value.blocks,
+        after: (() => {
+          const blocks = [...data.value.blocks];
+          const index = blocks.findIndex((block) => block === oldBlock);
+          if (index > -1) {
+            blocks.splice(index, 1, newBlock);
+          }
+          return blocks;
+        })(),
+      };
+
+      return {
+        redo() {
+          data.value = { ...data.value, blocks: state.after };
+        },
+        undo() {
+          data.value = { ...data.value, blocks: state.before };
+        },
+      };
+    },
+  });
+
   ~(() => {
     state.destoryArray.push(keyboardEvent());
     // 初始化
