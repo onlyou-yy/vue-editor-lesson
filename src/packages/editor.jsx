@@ -21,6 +21,7 @@ import {
 import { useCommand } from "./useCommand";
 import { $dialog } from "@/components/Dialog";
 import { $dropdown, DropdownItem } from "@/components/Dropdown";
+import { EditorOperator } from "./editor-operator";
 export default defineComponent({
   props: {
     modelValue: {
@@ -242,7 +243,14 @@ export default defineComponent({
               );
             })}
           </div>
-          <div className="editor-right">right</div>
+          <div className="editor-right">
+            <EditorOperator
+              block={lastSelectBlock.value}
+              data={data.value}
+              updateContainer={commands.updateContainer}
+              updateBlock={commands.updateBlock}
+            ></EditorOperator>
+          </div>
           <div
             className="editor-container"
             onMousedown={() => {

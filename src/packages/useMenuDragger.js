@@ -23,6 +23,8 @@ export function useMenuDragger(containerRef, data) {
           left: e.offsetX,
           zIndex: 1,
           alignCenter: true, //渲染完是否居中
+          props: {},
+          model: {},
         },
       ],
     };

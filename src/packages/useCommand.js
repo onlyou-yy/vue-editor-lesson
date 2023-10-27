@@ -85,7 +85,7 @@ export function useCommand(data, focusData) {
       };
     },
     execute() {
-      // 这里形成了一个闭包，
+      // 这里形成了一个闭包，在调用命令的时候都会触发一次下面的 redo 方法
       // 而且 data 是一个计算属性，当 data.vaule 重写赋值的时候会触发（editor.jsx 38行）set方法抛出深拷贝的数据进行更新
       // 所以具有的数据数量不回被后面修改
       let before = this.before;
