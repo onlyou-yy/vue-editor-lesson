@@ -85,7 +85,9 @@ export function useCommand(data, focusData) {
       };
     },
     execute() {
-      // 这里形成了一个闭包，而且 data.value.blocks 是深拷贝更新，所以具有的数据数量不回被后面修改
+      // 这里形成了一个闭包，
+      // 而且 data 是一个计算属性，当 data.vaule 重写赋值的时候会触发（editor.jsx 38行）set方法抛出深拷贝的数据进行更新
+      // 所以具有的数据数量不回被后面修改
       let before = this.before;
       let after = data.value.blocks;
       return {
