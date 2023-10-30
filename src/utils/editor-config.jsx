@@ -1,6 +1,7 @@
 // 列表区可以显示所有的物料
 // key对应的组件映射关系
 
+import Range from "@/components/Range";
 import { ElButton, ElInput } from "element-plus";
 
 function createEditorConfig() {
@@ -80,5 +81,25 @@ registerConfig.register({
   ),
   model: {
     default: "绑定字段",
+  },
+});
+
+registerConfig.register({
+  key: "range",
+  name: "范围选择器",
+  preview: () => <Range></Range>,
+  render: ({ model }) => (
+    <Range
+      {...{
+        start: model.start.modelValue,
+        "onUpdate:start": model.start["onUpdate:modelValue"],
+        end: model.end.modelValue,
+        "onUpdate:end": model.end["onUpdate:modelValue"],
+      }}
+    ></Range>
+  ),
+  model: {
+    start: "开始范围字段",
+    end: "结束范围字段",
   },
 });
