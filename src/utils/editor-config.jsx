@@ -52,7 +52,10 @@ registerConfig.register({
   name: "按钮",
   preview: () => <ElButton>这是预览按钮</ElButton>,
   render: ({ props, size }) => (
-    <ElButton style={props.size} type={props.type} size={props.size}>
+    <ElButton
+      style={{ width: `${size.width}px`, height: `${size.height}px` }}
+      type={props.type}
+    >
       {props.text || "渲染按钮"}
     </ElButton>
   ),
@@ -71,17 +74,28 @@ registerConfig.register({
       { label: "小", value: "small" },
     ]),
   },
+  resize: {
+    width: true,
+    height: true,
+  },
 });
 
 registerConfig.register({
   key: "input",
   name: "输入框",
   preview: () => <ElInput placeholder="这是预览input"></ElInput>,
-  render: ({ model }) => (
-    <ElInput placeholder="渲染输入框" {...model.default}></ElInput>
+  render: ({ model, size }) => (
+    <ElInput
+      style={{ width: `${size.width}px` }}
+      placeholder="渲染输入框"
+      {...model.default}
+    ></ElInput>
   ),
   model: {
     default: "绑定字段",
+  },
+  resize: {
+    width: true, //更改输入框的横向大小
   },
 });
 
