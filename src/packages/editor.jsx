@@ -28,6 +28,9 @@ export default defineComponent({
       type: Object,
       default: () => ({}),
     },
+    formData: {
+      type: Object,
+    },
   },
   emits: ["update:modelValue"],
   setup(props, ctx) {
@@ -193,6 +196,7 @@ export default defineComponent({
                 <EditorBlock
                   class={"editor-block-preview"}
                   block={block}
+                  formData={props.formData}
                 ></EditorBlock>
               );
             })}
@@ -279,6 +283,7 @@ export default defineComponent({
                       onContextmenu={(e) => {
                         onContextMenuBlock(e, block);
                       }}
+                      formData={props.formData}
                     ></EditorBlock>
                   );
                 })}
