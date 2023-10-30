@@ -2,7 +2,7 @@
 // key对应的组件映射关系
 
 import Range from "@/components/Range";
-import { ElButton, ElInput } from "element-plus";
+import { ElButton, ElInput, ElOption, ElSelect } from "element-plus";
 
 function createEditorConfig() {
   const componentList = []; //物料区组件列表
@@ -25,6 +25,7 @@ const createSelectProp = (label, options) => ({
   label,
   options,
 });
+const createTableProp = (label, table) => ({ type: "table", table, label });
 
 registerConfig.register({
   key: "text",
@@ -101,5 +102,30 @@ registerConfig.register({
   model: {
     start: "开始范围字段",
     end: "结束范围字段",
+  },
+});
+
+registerConfig.register({
+  key: "select",
+  name: "下拉选择器",
+  preview: () => <ElSelect modelValue=""></ElSelect>,
+  render: ({ props, model }) => (
+    <ElSelect {...model.default}>
+      {(props.options || []).map((item) => {
+        return <ElOption label={item.label} value={item.value}></ElOption>;
+      })}
+    </ElSelect>
+  ),
+  props: {
+    options: createTableProp("下拉选项", {
+      options: [
+        { label: "显示值", field: "label" },
+        { label: "绑定值", field: "value" },
+      ],
+      key: "label", //显示给用户的值是label值
+    }),
+  },
+  model: {
+    default: "绑定字段",
   },
 });
